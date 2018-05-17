@@ -9,6 +9,9 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.grpcshaded.stub.StreamObserver;
+import com.googleshaded.protobuf.Descriptors.FieldDescriptor;
+
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ListCommand;
 import mil.nga.giat.geowave.core.cli.operations.config.SetCommand;
@@ -26,15 +29,15 @@ public class GeoWaveGrpcCoreCliService extends
 	@Override
 	public void setCommand(
 			mil.nga.giat.geowave.service.grpc.protobuf.SetCommandParameters request,
-			io.grpc.stub.StreamObserver<mil.nga.giat.geowave.service.grpc.protobuf.GeoWaveReturnTypes.StringResponse> responseObserver ) {
+			StreamObserver<mil.nga.giat.geowave.service.grpc.protobuf.GeoWaveReturnTypes.StringResponse> responseObserver ) {
 
 		SetCommand cmd = new SetCommand();
-		Map<com.google.protoshadebuf3.Descriptors.FieldDescriptor, Object> m = request.getAllFields();
+		Map<FieldDescriptor, Object> m = request.getAllFields();
 		GeoWaveGrpcServiceCommandUtil.SetGrpcToCommandFields(
 				m,
 				cmd);
 
-		final File configFile = ConfigOptions.getDefaultPropertyFile();
+		final File configFile = GeoWaveGrpcServiceOptions.geowaveConfigFile;
 		final OperationParams params = new ManualOperationParams();
 		params.getContext().put(
 				ConfigOptions.PROPERTIES_FILE_CONTEXT,
@@ -44,10 +47,12 @@ public class GeoWaveGrpcCoreCliService extends
 
 		LOGGER.info("Executing SetCommand...");
 		try {
-			final String result = (String) cmd.executeService(
+			final Object result = (String) cmd.executeService(
 					params).getValue();
+			String strResponse = "";
+			if (result != null) strResponse = result.toString();
 			final StringResponse resp = StringResponse.newBuilder().setResponseValue(
-					result).build();
+					strResponse).build();
 			responseObserver.onNext(resp);
 			responseObserver.onCompleted();
 
@@ -62,15 +67,15 @@ public class GeoWaveGrpcCoreCliService extends
 	@Override
 	public void listCommand(
 			mil.nga.giat.geowave.service.grpc.protobuf.ListCommandParameters request,
-			io.grpc.stub.StreamObserver<mil.nga.giat.geowave.service.grpc.protobuf.GeoWaveReturnTypes.MapStringStringResponse> responseObserver ) {
+			StreamObserver<mil.nga.giat.geowave.service.grpc.protobuf.GeoWaveReturnTypes.MapStringStringResponse> responseObserver ) {
 
 		ListCommand cmd = new ListCommand();
-		Map<com.google.protoshadebuf3.Descriptors.FieldDescriptor, Object> m = request.getAllFields();
+		Map<FieldDescriptor, Object> m = request.getAllFields();
 		GeoWaveGrpcServiceCommandUtil.SetGrpcToCommandFields(
 				m,
 				cmd);
 
-		final File configFile = ConfigOptions.getDefaultPropertyFile();
+		final File configFile = GeoWaveGrpcServiceOptions.geowaveConfigFile;
 		final OperationParams params = new ManualOperationParams();
 		params.getContext().put(
 				ConfigOptions.PROPERTIES_FILE_CONTEXT,
